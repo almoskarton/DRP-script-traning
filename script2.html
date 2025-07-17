@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>DRP script2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .cell {
+      font-size: 20px;
+      padding: 20px;
+      background: #ffffff;
+      border: 2px solid #333;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .correct {
+      background: #4CAF50;
+      color: white;
+      border-color: #4CAF50;
+      pointer-events: none;
+    }
+
+    .wrong {
+      background: #f44336;
+      color: white;
+      border-color: #f44336;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #timer {
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>1-től 25-ig kattints sorban a számokra!</h1>
+  <div class="grid" id="grid"></div>
+  <div id="timer"></div>
+  <div id="message"></div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const timerDiv = document.getElementById('timer');
+    const messageDiv = document.getElementById('message');
+
+    let timeLeft = 25;
+    let timerInterval = null;
+    let currentNumber = 1;
+
+    startGame();
+
+    function startGame() {
+      // 1-25 számozás, véletlensorrend
+      const numbers = Array.from({length: 25}, (_, i) => i + 1);
+      numbers.sort(() => Math.random() - 0.5);
+
+      currentNumber = 1;
+      timeLeft = 35;
+      timerDiv.textContent = `⏳ Idő: ${timeLeft} mp`;
+      messageDiv.textContent = '';
+
+      grid.innerHTML = '';
+      numbers.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.textContent = n;
+        div.dataset.number = n;
+        div.addEventListener('click', handleClick);
+        grid.appendChild(div);
+      });
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDiv.textContent = `⏳ Idő: ${timeLeft} mp`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          messageDiv.textContent = '⏰ Lejárt az idő! Újrakezdés.';
+          setTimeout(startGame, 2000);
+        }
+      }, 1000);
+    }
+
+    function handleClick(e) {
+      const clickedNumber = parseInt(e.target.dataset.number, 10);
+      if (clickedNumber === currentNumber) {
+        e.target.classList.add('correct');
+        if (currentNumber === 25) {
+          messageDiv.textContent = '🎉 Gratulálok, teljesítetted!';
+          clearInterval(timerInterval);
+        }
+        currentNumber++;
+      } else {
+        e.target.classList.add('wrong');
+        messageDiv.textContent = `❌ Hibás! Újrakezdés.`;
+        clearInterval(timerInterval);
+        setTimeout(startGame, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

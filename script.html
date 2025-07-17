@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Billentyűzet Sorrend Időlimittel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+
+    .sequence {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .key {
+      font-size: 20px;
+      padding: 10px 15px;
+      background: #ffffff;
+      border: 2px solid #333;
+      border-radius: 6px;
+      min-width: 40px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .correct {
+      background: #4CAF50;
+      color: white;
+      border-color: #4CAF50;
+    }
+
+    .wrong {
+      background: #f44336;
+      color: white;
+      border-color: #f44336;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #timer {
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Nyomd le a gombokat sorrendben a billentyűzeten!</h1>
+  <div class="sequence" id="sequence"></div>
+  <div id="timer"></div>
+  <div id="message"></div>
+
+  <script>
+    const keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const sequenceLength = 18;
+    let sequence = [];
+    let currentIndex = 0;
+    let timeLeft = 20; // másodperc
+    let timerInterval = null;
+
+    const sequenceContainer = document.getElementById('sequence');
+    const messageDiv = document.getElementById('message');
+    const timerDiv = document.getElementById('timer');
+
+    startGame();
+
+    function startGame() {
+      // Új sorrend generálása
+      sequence = [];
+      while (sequence.length < sequenceLength) {
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        sequence.push(randomKey);
+      }
+      currentIndex = 0;
+      timeLeft = 20;
+      timerDiv.textContent = `⏳ Idő: ${timeLeft} mp`;
+
+      // Megjelenítés
+      sequenceContainer.innerHTML = '';
+      messageDiv.textContent = '';
+      sequence.forEach((key, index) => {
+        const div = document.createElement('div');
+        div.className = 'key';
+        div.id = `key-${index}`;
+        div.textContent = key;
+        sequenceContainer.appendChild(div);
+      });
+
+      // Időzítő indítása
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDiv.textContent = `⏳ Idő: ${timeLeft} mp`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          messageDiv.textContent = '⏰ Lejárt az idő! Újrakezdés.';
+          resetSequence();
+        }
+      }, 1000);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (timeLeft <= 0) return;
+
+      const pressed = e.key.toUpperCase();
+      const expected = sequence[currentIndex];
+      const currentKeyDiv = document.getElementById(`key-${currentIndex}`);
+
+      if (pressed === expected) {
+        currentKeyDiv.classList.add('correct');
+        currentIndex++;
+
+        if (currentIndex === sequence.length) {
+          messageDiv.textContent = '🎉 Gratulálok, teljesítetted!';
+          clearInterval(timerInterval);
+        } else {
+          messageDiv.textContent = '✅ Helyes!';
+        }
+
+      } else {
+        messageDiv.textContent = `❌ Hibás gomb: ${pressed}. Újrakezdés.`;
+        clearInterval(timerInterval);
+        resetSequence();
+      }
+    });
+
+    function resetSequence() {
+      sequence.forEach((_, i) => {
+        const div = document.getElementById(`key-${i}`);
+        div.classList.remove('correct', 'wrong');
+      });
+      setTimeout(() => {
+        startGame();
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
